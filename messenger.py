@@ -53,7 +53,8 @@ def _delete_message(ids):
 
         conn.commit()
 
-# standard routing
+
+# Standard routing (server-side rendered pages)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
@@ -62,23 +63,27 @@ def home():
 
     return render_template('index.html', messages=_get_message())
 
+
 @app.route('/about')
 def about():
     return render_template('about.html')
+
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if not 'logged_in' in session:
         return redirect(url_for('login'))
-    
+
     if request.method == 'POST':
+        # This little hack is needed for testing due to how Python dictionary keys work
         _delete_message([k[6:] for k in request.form.keys()])
         redirect(url_for('admin'))
-    
+
     messages = _get_message()
     messages.reverse()
 
-    return render_template('admin.html', message=messages)
+    return render_template('admin.html', messages=messages)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -91,10 +96,12 @@ def login():
             return redirect(url_for('admin'))
     return render_template('login.html', error=error)
 
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     return redirect(url_for('home'))
+
 
 # RESTful routing (serves JSON to provide an external API)
 @app.route('/messages/api', methods=['GET'])
@@ -122,11 +129,15 @@ def delete_message_by_id(id):
     _delete_message(id)
     return jsonify({'result': True})
 
+
 if __name__ == '__main__':
+
+    # Test whether the database exists; if not, create it and create the table
     if not os.path.exists(app.config['DATABASE']):
         try:
             conn = sqlite3.connect(app.config['DATABASE'])
 
+            # Absolute path needed for testing environment
             sql_path = os.path.join(app.config['APP_ROOT'], 'db_init.sql')
             cmd = open(sql_path, 'r').read()
             c = conn.cursor()
@@ -134,10 +145,10 @@ if __name__ == '__main__':
             conn.commit()
             conn.close()
         except IOError:
-            print("couldn't initialize the database, exiting..")
+            print("Couldn't initialize the database, exiting...")
             raise
         except sqlite3.OperationalError:
-            print("couldn't execute sql, exiting..")
+            print("Couldn't execute the SQL, exiting...")
             raise
-    
+
     app.run(host='0.0.0.0')
