@@ -122,3 +122,22 @@ def delete_message_by_id(id):
     _delete_message(id)
     return jsonify({'result': True})
 
+if __name__ == '__main__':
+    if not os.path.exists(app.config['DATABASE']):
+        try:
+            conn = sqlite3.connect(app.config['DATABASE'])
+
+            sql_path = os.path.join(app.config['APP_ROOT'], 'db_init.sql')
+            cmd = open(sql_path, 'r').read()
+            c = conn.cursor()
+            c.execute(cmd)
+            conn.commit()
+            conn.close()
+        except IOError:
+            print("couldn't initialize the database, exiting..")
+            raise
+        except sqlite3.OperationalError:
+            print("couldn't execute sql, exiting..")
+            raise
+    
+    app.run(host='0.0.0.0')
