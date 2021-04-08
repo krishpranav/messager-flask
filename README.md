@@ -15,4 +15,4 @@ python3 -m pip install -r requirements.txt
 python3 messager.py
 ```
 
-# Tool Author: krishpranav | https://github.com/krishpranav
+- Tool Author: krishpranav | https://github.com/krishpranav
