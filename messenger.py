@@ -96,3 +96,29 @@ def logout():
     session.pop('logged_in', None)
     return redirect(url_for('home'))
 
+# RESTful routing (serves JSON to provide an external API)
+@app.route('/messages/api', methods=['GET'])
+@app.route('/messages/api/<int:id>', methods=['GET'])
+def get_message_by_id(id=None):
+    messages = _get_message(id)
+    if not messages:
+        return make_response(jsonify({'error': 'Not found'}), 404)
+
+    return jsonify({'messages': messages})
+
+
+@app.route('/messages/api', methods=['POST'])
+def create_message():
+    if not request.json or not 'message' in request.json or not 'sender' in request.json:
+        return make_response(jsonify({'error': 'Bad request'}), 400)
+
+    id = _add_message(request.json['message'], request.json['sender'])
+
+    return get_message_by_id(id), 201
+
+
+@app.route('/messages/api/<int:id>', methods=['DELETE'])
+def delete_message_by_id(id):
+    _delete_message(id)
+    return jsonify({'result': True})
+
