@@ -52,3 +52,13 @@ def _delete_message(ids):
             c.execute(q, (int(ids),))
 
         conn.commit()
+
+# standard routing
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    if request.method == 'POST':
+        _add_message(request.form['message'], request.form['username'])
+        redirect(url_for('home'))
+
+    return render_template('index.html', messages=_get_message())
+
