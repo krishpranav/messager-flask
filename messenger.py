@@ -62,3 +62,37 @@ def home():
 
     return render_template('index.html', messages=_get_message())
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    if not 'logged_in' in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        _delete_message([k[6:] for k in request.form.keys()])
+        redirect(url_for('admin'))
+    
+    messages = _get_message()
+    messages.reverse()
+
+    return render_template('admin.html', message=messages)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'] != app.config['USERNAME'] or request.form['password'] != app.config['PASSWORD']:
+            error = 'Invalid username and/or password'
+        else:
+            session['logged_in'] = True
+            return redirect(url_for('admin'))
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('home'))
+
